@@ -1,4 +1,5 @@
 /public/index.js
+*.sqlite
 
 # Created by https://www.gitignore.io/api/elm
 

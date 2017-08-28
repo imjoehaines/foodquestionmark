@@ -1,4 +1,5 @@
 const Hapi = require('hapi')
+const db = require('sqlite')
 
 const server = new Hapi.Server()
 server.connection({ port: 8000 })
@@ -22,20 +23,24 @@ server.register(require('inert'), err => {
 server.route({
   method: 'GET',
   path: '/api/restaurants',
-  handler: (request, reply) => reply([
-    {
-      id: 1,
-      name: 'Food Place'
-    },
-    {
-      id: 2,
-      name: 'Other Food Place'
-    }
-  ])
+  handler: async (request, reply) => {
+    const restaurants = await db.all('SELECT id, name FROM restaurant')
+
+    reply(restaurants)
+  }
 })
 
-server.start(err => {
-  if (err) throw err
+server.on('request-error', (request, err) => console.error(err))
 
-  console.log('Server running at:', server.info.uri)
-})
+db.open(`${__dirname}/../db.sqlite`)
+  .then(_ => db.migrate({
+    force: process.env.NODE_ENV === 'production' ? false : 'last'
+  }))
+  .then(_ =>
+    server.start(err => {
+      if (err) throw err
+
+      console.log('Server running at:', server.info.uri)
+    })
+  )
+  .catch(err => console.error(err))
