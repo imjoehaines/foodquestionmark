@@ -1,46 +1,23 @@
-const Hapi = require('hapi')
 const db = require('sqlite')
+const morgan = require('morgan')
+const express = require('express')
+const bodyParser = require('body-parser')
 
-const server = new Hapi.Server()
-server.connection({ port: 8000 })
+const app = express()
 
-server.register(require('inert'), err => {
-  if (err) throw err
+app.use(bodyParser.json())
+app.use(morgan('combined'))
+app.use(express.static(`${__dirname}/../public`))
 
-  server.route({
-    method: 'GET',
-    path: '/index.js',
-    handler: (request, reply) => reply.file(`${__dirname}/../public/index.js`)
-  })
+app.get('/api/restaurants', async (request, response, next) => {
+  const restaurants = await db.all('SELECT id, name FROM restaurant')
 
-  server.route({
-    method: 'GET',
-    path: '/',
-    handler: (request, reply) => reply.file(`${__dirname}/../public/index.html`)
-  })
+  response.json(restaurants)
 })
-
-server.route({
-  method: 'GET',
-  path: '/api/restaurants',
-  handler: async (request, reply) => {
-    const restaurants = await db.all('SELECT id, name FROM restaurant')
-
-    reply(restaurants)
-  }
-})
-
-server.on('request-error', (request, err) => console.error(err))
 
 db.open(`${__dirname}/../db.sqlite`)
-  .then(_ => db.migrate({
-    force: process.env.NODE_ENV === 'production' ? false : 'last'
-  }))
-  .then(_ =>
-    server.start(err => {
-      if (err) throw err
-
-      console.log('Server running at:', server.info.uri)
-    })
-  )
-  .catch(err => console.error(err))
+.then(_ => db.migrate({
+  force: process.env.NODE_ENV === 'production' ? false : 'last'
+}))
+.then(_ => app.listen(8000))
+.catch(err => console.error(err))
