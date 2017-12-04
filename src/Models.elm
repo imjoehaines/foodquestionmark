@@ -1,6 +1,7 @@
 module Models exposing (..)
 
 import RemoteData exposing (WebData)
+import Time exposing (Time)
 
 
 type alias OrderId =
@@ -15,7 +16,9 @@ type Route
 
 
 type alias Order =
-    { restaurantId : Int
+    { id : Int
+    , restaurantId : Int
+    , time : Time
     }
 
 
@@ -46,7 +49,7 @@ initialForm =
 initialModel : Route -> Model
 initialModel route =
     { route = route
-    , orders = []
+    , orders = [ Order 1 1 1512395843751 ]
     , form = initialForm
     , restaurants = RemoteData.Loading
     }

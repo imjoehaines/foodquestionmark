@@ -18,6 +18,18 @@ view response orderForm =
                 [ text "Restaurant"
                 , restaurantList response orderForm
                 ]
+            , case orderForm.restaurantId of
+                Nothing ->
+                    text ""
+
+                Just 1 ->
+                    text "a real good menu"
+
+                Just 2 ->
+                    text "a pretty good menu"
+
+                Just _ ->
+                    text "a menu"
             ]
         ]
 

@@ -1,22 +1,24 @@
 module View exposing (..)
 
-import Html exposing (Html, div, h1, a, text)
-import Html.Attributes exposing (href)
+import Html exposing (Html, div, header, h1, a, button, main_, footer, text)
+import Html.Attributes exposing (href, class)
 import Models exposing (Model)
 import Messages exposing (Msg)
 import Order.List
 import Order.New
+import Order.Single
 import Routing
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ page model
-        , div [] [ a [ href Routing.orderListPath ] [ text "Order List" ] ]
-        , div [] [ a [ href <| Routing.orderPath 1 ] [ text "Single Order" ] ]
-        , div [] [ a [ href Routing.newOrderPath ] [ text "New Order" ] ]
-        , div [] [ a [ href "#404" ] [ text "404" ] ]
+        [ header [] [ h1 [] [ text "Food?" ] ]
+        , main_ [] [ page model ]
+        , footer []
+            [ a [ class "button pull-left", href Routing.orderListPath ] [ text "Past Orders" ]
+            , a [ class "button button--primary pull-right", href Routing.newOrderPath ] [ text "Create Order" ]
+            ]
         ]
 
 
@@ -24,10 +26,19 @@ page : Model -> Html Msg
 page model =
     case model.route of
         Models.OrderListRoute ->
-            Order.List.view model.orders
+            Order.List.view model.restaurants model.orders
 
         Models.OrderRoute id ->
-            orderView
+            let
+                orders =
+                    List.filter (\order -> order.id == id) model.orders
+            in
+                case List.head orders of
+                    Just order ->
+                        Order.Single.view model.restaurants order
+
+                    Nothing ->
+                        div [] [ text "" ]
 
         Models.NewOrderRoute ->
             Order.New.view model.restaurants model.form
